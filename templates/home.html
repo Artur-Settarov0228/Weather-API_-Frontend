@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <title>Ob-Havo Qidiruvi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #result img {
+            width: 80px;
+            vertical-align: middle;
+        }
+        .error {
+            color: red;
+            padding: 10px 0;
+        }
+        .card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🌤 Ob-Havo Qidiruvi</h1>
+
+    <div class="search-box">
+        <input type="text" id="cityInput" placeholder="Masalan: Tashkent" style="flex:1; padding:8px;">
+        <button id="searchBtn" style="padding:8px 14px;">Qidirish</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const input = document.getElementById("cityInput");
+            const btn = document.getElementById("searchBtn");
+            const result = document.getElementById("result");
+
+            async function fetchWeather(city) {
+                result.innerHTML = "⏳ Yuklanmoqda...";
+
+                try {
+                    const res = await fetch(`/api/weather/?city=${encodeURIComponent(city)}`);
+
+                    if (!res.ok) {
+                        const err = await res.json();
+                        result.innerHTML = `<div class="error">${err.error || 'Xato yuz berdi'}</div>`;
+                        return;
+                    }
+
+                    const { source, data } = await res.json();
+
+                    result.innerHTML = `
+                        <div class="card">
+                            <h2>${data.city} <small>(${source})</small></h2>
+                            <p>
+                                ${data.weather}
+                                <img src="https://openweathermap.org/img/wn/${data.icon}@2x.png">
+                            </p>
+
+                            <p><b>🌡 Harorat:</b> ${data.temp} °C</p>
+                            <p><b>🤒 Sezilishi:</b> ${data.feels_like} °C</p>
+                            <p><b>💧 Namlik:</b> ${data.humidity}%</p>
+                            <p><b>🧭 Shamol:</b> ${data.wind_speed} m/s</p>
+                            <p><b>🧱 Bosim:</b> ${data.pressure} hPa</p>
+                        </div>
+                    `;
+                } catch (e) {
+                    result.innerHTML = `<div class="error">Xatolik: ${e.message}</div>`;
+                }
+            }
+
+            btn.addEventListener("click", () => {
+                const city = input.value.trim() || "Tashkent";
+                fetchWeather(city);
+            });
+
+            input.addEventListener("keyup", (e) => {
+                if (e.key === "Enter") btn.click();
+            });
+        });
+    </script>
+
+</body>
+</html>
